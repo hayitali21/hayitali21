@@ -1,0 +1,5 @@
+- 👋 Hi, I’m @hayitali21
+- 👀 I’m interested in programming and cooking food.
+- 🌱 I’m currently learning frontend development.
+- 💞️ I’m looking to collaborate on ...
+- 📫 How to reach me https://t.me/The_way_finder
