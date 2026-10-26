@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Kumush Nanozarracha Laboratoriyasi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lab bench — step rail on the left, live apparatus + narrator console on the right */
+:root {
+  --bg: #eaf0f3;
+  --panel: #ffffff;
+  --panel-2: #f4f8fa;
+  --ink: #13212b;
+  --muted: #586a76;
+  --line: #cdd8df;
+  --accent: #23698c;
+  --accent-ink: #ffffff;
+  --sol: #e5b31c;
+  --glass: #8fb3c7;
+  --ok: #17803d;
+  --warn: #b9480f;
+  --bench: #c9d4da;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e151a; --panel: #162028; --panel-2: #1b2731; --ink: #e4ecf0; --muted: #93a5b1;
+    --line: #2b3a45; --accent: #6db4d6; --accent-ink: #0b1418; --sol: #f0c440; --glass: #5f8aa1;
+    --ok: #4ec27a; --warn: #f08a4b; --bench: #24323c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e151a; --panel: #162028; --panel-2: #1b2731; --ink: #e4ecf0; --muted: #93a5b1;
+  --line: #2b3a45; --accent: #6db4d6; --accent-ink: #0b1418; --sol: #f0c440; --glass: #5f8aa1;
+  --ok: #4ec27a; --warn: #f08a4b; --bench: #24323c; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
+header.top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 3.4vw, 36px); line-height: 1.1; margin: 4px 0 0; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--sol); }
+.eq { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-top: 6px; overflow-wrap: anywhere; }
+.narr-ctl { display: flex; gap: 8px; flex-wrap: wrap; }
+button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 8px 14px; font-weight: 500; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button.on { background: var(--panel-2); border-color: var(--ok); color: var(--ok); }
+
+.grid { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 18px; align-items: start; }
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; gap: 2px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+.rail button { display: grid; grid-template-columns: 26px 1fr; gap: 8px; align-items: center; text-align: left; border: 0; background: transparent; padding: 7px 8px; font-size: 14px; }
+.rail button .n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-size: 12px; border: 1px solid var(--line); color: var(--muted); }
+.rail button.cur { background: var(--panel-2); }
+.rail button.cur .n { border-color: var(--accent); color: var(--accent); }
+.rail button.done .n { background: var(--ok); border-color: var(--ok); color: var(--panel); }
+.main { display: grid; gap: 18px; min-width: 0; }
+
+.bench { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) 190px; }
+.scene { min-width: 0; background: linear-gradient(var(--panel-2), var(--panel)); }
+.scene svg { display: block; width: 100%; height: auto; }
+.gauges { border-left: 1px solid var(--line); padding: 14px; display: grid; gap: 12px; align-content: start; font-variant-numeric: tabular-nums; }
+.g .k { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.g .v { font-family: var(--mono); font-size: 20px; font-weight: 500; }
+.meter { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; margin-top: 4px; }
+.meter i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .3s, background .3s; }
+.swatch { width: 100%; height: 22px; border-radius: 6px; border: 1px solid var(--line); margin-top: 4px; }
+
+.console { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 14px; }
+.console h2 { font-family: var(--display); font-weight: 700; font-size: 22px; margin: 0; text-wrap: balance; }
+.subtitle { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; background: var(--panel-2); border-radius: 10px; padding: 12px 14px; max-width: 75ch; }
+.mic { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font-family: var(--mono); font-size: 11px; font-weight: 600; }
+.mic.talking { animation: pulse 1s infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent); } }
+.subtitle p { margin: 0; }
+.why { font-size: 14px; color: var(--muted); max-width: 75ch; margin: 0; }
+.why b { color: var(--ink); font-weight: 600; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.field { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.field input[type=number] { font: 500 15px var(--mono); width: 120px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); }
+.field input[type=range] { width: min(260px, 100%); accent-color: var(--accent); }
+.msg { min-height: 1.5em; font-size: 14px; font-weight: 500; margin: 0; }
+.msg.ok { color: var(--ok); } .msg.bad { color: var(--warn); }
+.nav { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding-top: 14px; }
+.calc { font-family: var(--mono); font-size: 13px; background: var(--panel-2); border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: pre; }
+
+.chart { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.chart h3 { margin: 0 0 6px; font-family: var(--display); font-size: 17px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.chart .legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; background: var(--c); }
+
+.quiz { display: grid; gap: 14px; }
+.q p { margin: 0 0 6px; font-weight: 600; }
+.q .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.q button.right { border-color: var(--ok); color: var(--ok); }
+.q button.wrong { border-color: var(--warn); color: var(--warn); }
+
+@media (max-width: 860px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; display: flex; overflow-x: auto; }
+  .rail button { grid-template-columns: 24px auto; white-space: nowrap; }
+  .bench { grid-template-columns: minmax(0, 1fr); }
+  .gauges { border-left: 0; border-top: 1px solid var(--line); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* scene animation */
+.spin { transform-box: fill-box; transform-origin: center; animation: spin var(--spd, 0s) linear infinite; }
+@keyframes spin { 0%{transform:scaleX(1)} 50%{transform:scaleX(.15)} 100%{transform:scaleX(1)} }
+.drop { animation: fall .45s ease-in forwards; }
+@keyframes fall { from { transform: translateY(0); opacity: 1 } to { transform: translateY(150px); opacity: .2 } }
+@media (prefers-reduced-motion: reduce) { .spin, .drop, .mic.talking { animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Virtual laboratoriya · kolloid kimyo</div>
+      <h1>NaBH<sub>4</sub> bilan qaytarib <em>kumush nanozarrachalari</em> olish</h1>
+      <div class="eq">AgNO₃ + NaBH₄ → Ag⁰ + ½H₂↑ + ½B₂H₆ + NaNO₃</div>
+    </div>
+    <div class="narr-ctl">
+      <button id="voiceBtn" class="primary" type="button">Diktorni yoqish</button>
+      <button id="repeatBtn" type="button">Qayta eshitish</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <nav class="rail" id="rail" aria-label="Bosqichlar"></nav>
+
+    <div class="main">
+      <section class="bench" aria-label="Laboratoriya stoli">
+        <div class="scene">
+          <svg id="scene" viewBox="0 0 600 380" role="img" aria-label="Laboratoriya jihozlari">
+            <defs>
+              <clipPath id="flaskClip"><path d="M285 120 L285 172 L232 290 Q230 297 238 297 L362 297 Q370 297 368 290 L315 172 L315 120 Z"/></clipPath>
+              <clipPath id="buretteClip"><rect x="293" y="14" width="14" height="86"/></clipPath>
+              <clipPath id="vialA"><rect x="458" y="232" width="30" height="64" rx="12"/></clipPath>
+              <clipPath id="vialB"><rect x="518" y="232" width="30" height="64" rx="12"/></clipPath>
+              <linearGradient id="beam" x1="0" x2="1"><stop offset="0" stop-color="#ff2a2a" stop-opacity=".9"/><stop offset="1" stop-color="#ff2a2a" stop-opacity=".15"/></linearGradient>
+            </defs>
+            <rect x="0" y="350" width="600" height="30" fill="var(--bench)"/>
+            <!-- stir plate -->
+            <g id="plate" opacity=".35">
+              <rect x="180" y="300" width="240" height="50" rx="6" fill="var(--muted)"/>
+              <rect x="196" y="314" width="70" height="22" rx="4" fill="var(--panel)"/>
+              <text id="rpmTxt" x="231" y="330" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--ink)">0 rpm</text>
+              <circle id="knob" cx="390" cy="325" r="11" fill="var(--panel)"/>
+            </g>
+            <!-- ice bath -->
+            <g id="ice" visibility="hidden">
+              <path d="M200 205 L206 300 L394 300 L400 205" fill="#bfe3f5" fill-opacity=".45" stroke="var(--glass)" stroke-width="2"/>
+              <g fill="#ffffff" fill-opacity=".85" stroke="#9cc8dd">
+                <rect x="210" y="262" width="20" height="18" rx="3" transform="rotate(-12 220 271)"/>
+                <rect x="372" y="258" width="18" height="18" rx="3" transform="rotate(14 381 267)"/>
+                <rect x="214" y="232" width="16" height="15" rx="3" transform="rotate(20 222 240)"/>
+                <rect x="374" y="228" width="16" height="16" rx="3" transform="rotate(-8 382 236)"/>
+                <rect x="358" y="276" width="18" height="16" rx="3"/>
+              </g>
+            </g>
+            <!-- flask -->
+            <g id="flask" visibility="hidden">
+              <g clip-path="url(#flaskClip)">
+                <rect id="liquid" x="220" y="222" width="160" height="80" fill="#cfe6f2" fill-opacity=".45"/>
+                <g id="sparkles"></g>
+                <rect id="stirbar" class="spin" x="285" y="284" width="30" height="8" rx="4" fill="#f5f7f8" stroke="#9aa9b3" visibility="hidden"/>
+              </g>
+              <path d="M285 120 L285 172 L232 290 Q230 297 238 297 L362 297 Q370 297 368 290 L315 172 L315 120" fill="none" stroke="var(--glass)" stroke-width="2.5"/>
+              <line x1="280" y1="120" x2="320" y2="120" stroke="var(--glass)" stroke-width="3" stroke-linecap="round"/>
+              <text x="110" y="190" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)" id="flaskLbl">NaBH₄ 2 mM, 30 mL</text>
+            </g>
+            <!-- burette -->
+            <g id="burette" visibility="hidden">
+              <line x1="440" y1="4" x2="440" y2="300" stroke="var(--muted)" stroke-width="4"/>
+              <line x1="308" y1="40" x2="440" y2="40" stroke="var(--muted)" stroke-width="3"/>
+              <rect x="293" y="14" width="14" height="86" rx="2" fill="var(--panel)" stroke="var(--glass)" stroke-width="2"/>
+              <rect id="buretteLiq" x="293" y="20" width="14" height="80" fill="#d9e9f1" clip-path="url(#buretteClip)"/>
+              <rect x="288" y="100" width="24" height="7" rx="2" fill="var(--accent)"/>
+              <path d="M297 107 L300 120 L303 107 Z" fill="var(--glass)"/>
+              <text x="320" y="24" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">AgNO₃ 1 mM</text>
+              <g id="drops"></g>
+            </g>
+            <!-- thermometer -->
+            <g id="thermo" visibility="hidden">
+              <rect x="514" y="60" width="12" height="190" rx="6" fill="var(--panel)" stroke="var(--glass)"/>
+              <circle cx="520" cy="258" r="12" fill="#d33b3b"/>
+              <rect id="mercury" x="517" y="150" width="6" height="108" fill="#d33b3b"/>
+              <text x="540" y="70" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">°C</text>
+            </g>
+            <!-- laser -->
+            <g id="laser" visibility="hidden">
+              <rect x="70" y="246" width="70" height="16" rx="4" fill="#2b2f33"/>
+              <rect x="140" y="250" width="8" height="8" fill="#555"/>
+              <line x1="148" y1="254" x2="244" y2="254" stroke="#ff2a2a" stroke-width="1" stroke-opacity=".35"/>
+              <line id="beamIn" x1="244" y1="254" x2="356" y2="254" stroke="url(#beam)" stroke-width="5" stroke-linecap="round"/>
+              <text x="70" y="240" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">lazer 650 nm</text>
+            </g>
+            <!-- vials -->
+            <g id="vials" visibility="hidden">
+              <g clip-path="url(#vialA)"><rect id="vialALiq" x="458" y="250" width="30" height="50" fill="#e5b31c"/></g>
+              <rect x="458" y="232" width="30" height="64" rx="12" fill="none" stroke="var(--glass)" stroke-width="2"/>
+              <text x="473" y="312" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">A: +NaCl</text>
+              <g clip-path="url(#vialB)"><rect id="vialBLiq" x="518" y="250" width="30" height="50" fill="#e5b31c"/></g>
+              <rect x="518" y="232" width="30" height="64" rx="12" fill="none" stroke="var(--glass)" stroke-width="2"/>
+              <text x="533" y="312" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">B: PVP+NaCl</text>
+            </g>
+            <!-- safety gear badges -->
+            <g id="gear" font-family="IBM Plex Mono, monospace" font-size="11"></g>
+          </svg>
+        </div>
+        <aside class="gauges" aria-label="Ko'rsatkichlar">
+          <div class="g"><div class="k">Harorat</div><div class="v" id="gTemp">22.0 °C</div></div>
+          <div class="g"><div class="k">AgNO₃ qo'shildi</div><div class="v" id="gVol">0.00 mL</div><div class="meter"><i id="gVolBar"></i></div></div>
+          <div class="g"><div class="k">Aralashtirish</div><div class="v" id="gRpm">0 rpm</div></div>
+          <div class="g"><div class="k">Agregatsiya xavfi</div><div class="v" id="gRisk">past</div><div class="meter"><i id="gRiskBar"></i></div></div>
+          <div class="g"><div class="k">Eritma rangi</div><div class="swatch" id="gColor"></div></div>
+        </aside>
+      </section>
+
+      <section class="console" aria-live="polite">
+        <div class="eyebrow" id="stepNo"></div>
+        <h2 id="stepTitle"></h2>
+        <div class="subtitle"><div class="mic" id="mic">DIK</div><p id="narr"></p></div>
+        <p class="why" id="why"></p>
+        <div id="controls" class="actions"></div>
+        <p class="msg" id="msg"></p>
+        <div class="nav">
+          <button id="prevBtn" type="button">← Oldingi</button>
+          <button id="nextBtn" class="primary" type="button">Keyingi bosqich →</button>
+        </div>
+      </section>
+
+      <section class="chart" id="chartBox" hidden>
+        <h3>UV-Vis yutilish spektri</h3>
+        <svg id="chart" viewBox="0 0 640 260" role="img" aria-label="Yutilish spektri"></svg>
+        <div class="legend" id="legend"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const S = {
+  step: 0, done: Array(10).fill(false),
+  gear: { kozoynak: false, qolqop: false, xalat: false },
+  naDissolved: false, agReady: false, inIce: false, temp: 22, cooling: false,
+  stirBar: false, rpm: 0, vol: 0, lastDrop: 0, risk: 0, auto: null,
+  stirStopped: false, overStir: 0, overTimer: null,
+  spectrum: false, laser: false, nacl: false, pvp: false, quiz: {}
+};
+
+/* ---------- narrator ---------- */
+let voiceOn = false, voice = null;
+function pickVoice() {
+  const vs = speechSynthesis.getVoices();
+  voice = vs.find(v => /^uz/i.test(v.lang)) || vs.find(v => /^tr/i.test(v.lang)) || vs.find(v => /^ru/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function speak(t) {
+  if (!voiceOn || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(t.replace(/<[^>]+>/g, ''));
+  if (voice) { u.voice = voice; u.lang = voice.lang; } else u.lang = 'uz-UZ';
+  u.rate = .95;
+  u.onstart = () => $('mic').classList.add('talking');
+  u.onend = u.onerror = () => $('mic').classList.remove('talking');
+  speechSynthesis.speak(u);
+}
+$('voiceBtn').onclick = () => {
+  voiceOn = !voiceOn;
+  $('voiceBtn').textContent = voiceOn ? 'Diktorni o\'chirish' : 'Diktorni yoqish';
+  $('voiceBtn').classList.toggle('primary', !voiceOn);
+  if (voiceOn) speak(STEPS[S.step].narr); else if ('speechSynthesis' in window) speechSynthesis.cancel();
+};
+$('repeatBtn').onclick = () => { if (!voiceOn) $('voiceBtn').click(); else speak(STEPS[S.step].narr); };
+
+function say(text, kind) {
+  const m = $('msg'); m.textContent = text; m.className = 'msg ' + (kind || '');
+  speak(text);
+}
+
+/* ---------- colour model ---------- */
+function mix(a, b, t) { return a.map((x, i) => Math.round(x + (b[i] - x) * t)); }
+function agg() { return Math.min(1, S.risk >= 1 ? .45 : 0) + Math.min(.6, S.overStir / 25); }
+function solColor(t, g) {
+  const clear = [207, 230, 242], yellow = [236, 186, 26], grey = [118, 112, 118];
+  let c = mix(clear, yellow, Math.min(1, t));
+  c = mix(c, grey, Math.min(1, g));
+  return `rgb(${c.join(',')})`;
+}
+
+/* ---------- steps ---------- */
+const STEPS = [
+  { t: "Xavfsizlik", narr: "Xush kelibsiz! Bugun natriy tetragidroborat yordamida kumush ionlarini qaytarib, kumush nanozarrachalarini olamiz. Avval xavfsizlik: ko'zoynak, qo'lqop va laboratoriya xalatini kiying.",
+    why: "<b>Nega?</b> NaBH₄ o'yuvchi va suv bilan vodorod ajratadi; AgNO₃ terini qora dog' qilib bo'yaydi va ko'zga zararli.",
+    ui() { return Object.keys(S.gear).map(k => `<button type="button" data-gear="${k}" class="${S.gear[k] ? 'on' : ''}">${S.gear[k] ? '✓ ' : ''}${{kozoynak:"Ko'zoynak",qolqop:"Qo'lqop",xalat:"Xalat"}[k]}</button>`).join(''); },
+    bind(c) { c.querySelectorAll('[data-gear]').forEach(b => b.onclick = () => { S.gear[b.dataset.gear] = true; render(); if (Object.values(S.gear).every(Boolean)) complete("Ajoyib, himoya vositalari kiyildi."); }); }
+  },
+  { t: "NaBH₄ eritmasini tayyorlash", narr: "Birinchi eritma: 30 millilitr 0.002 molyar natriy tetragidroborat. Kerakli massani hisoblang va milligrammda kiriting. Molyar massa 37.83 gramm mol.",
+    why: "<b>Muhim:</b> NaBH₄ eritmasi faqat tajriba oldidan yangi tayyorlanadi, u suvda asta parchalanadi. Amalda 2 mg ni aniq tortish qiyin, shu sabab kattaroq hajmda tayyorlab suyultiriladi.",
+    ui() { return `<div class="field"><label for="mNa">Massa (mg):</label><input id="mNa" type="number" step="0.01" placeholder="masalan 1.50"><button type="button" id="chkNa" class="primary">Tortish</button><button type="button" id="hintNa">Formula</button></div>`; },
+    bind() {
+      $('hintNa').onclick = () => say("m = C · V · M = 0.002 mol/L × 0.030 L × 37.83 g/mol");
+      $('chkNa').onclick = () => { const v = parseFloat($('mNa').value);
+        if (v >= 2.2 && v <= 2.35) { S.naDissolved = true; render(); complete("To'g'ri! 2.27 mg NaBH₄ distillangan suvda eritildi va kolbaga quyildi."); }
+        else say("Noto'g'ri. Hajmni litrga o'tkazishni unutmang va qayta hisoblang.", 'bad'); };
+    }
+  },
+  { t: "AgNO₃ eritmasini tayyorlash", narr: "Ikkinchi eritma: 10 millilitr 0.001 molyar kumush nitrat. Massani hisoblang. Kumush nitratning molyar massasi 169.87 gramm mol. So'ng eritmani byuretkaga quying.",
+    why: "<b>Diqqat:</b> AgNO₃ yorug'likda parchalanadi, uni qo'ng'ir idishda saqlang. Mol nisbati: NaBH₄ 60 µmol, Ag⁺ atigi 2 µmol. Ortiqcha BH₄⁻ ham qaytaradi, ham zarracha sirtini zaryadlab barqarorlashtiradi.",
+    ui() { return `<div class="field"><label for="mAg">Massa (mg):</label><input id="mAg" type="number" step="0.01" placeholder="masalan 1.00"><button type="button" id="chkAg" class="primary">Tortib, byuretkaga quyish</button><button type="button" id="hintAg">Formula</button></div>`; },
+    bind() {
+      $('hintAg').onclick = () => say("m = 0.001 mol/L × 0.010 L × 169.87 g/mol");
+      $('chkAg').onclick = () => { const v = parseFloat($('mAg').value);
+        if (v >= 1.65 && v <= 1.75) { S.agReady = true; render(); complete("To'g'ri! 1.70 mg AgNO₃ eritildi va byuretkaga quyildi."); }
+        else say("Noto'g'ri. C × V × M formulasini qayta tekshiring.", 'bad'); };
+    }
+  },
+  { t: "Muz vannasida sovutish", narr: "NaBH4 solingan kolbani muz vannasiga qo'ying va harorat taxminan 2 gradusgacha tushishini kuting. Haqiqiy tajribada bu 20 daqiqa davom etadi.",
+    why: "<b>Nega sovutamiz?</b> Past haroratda NaBH₄ ning gidrolizi sekinlashadi va zarrachalar o'sishi nazorat ostida bo'ladi — o'lchamlar bir xilroq chiqadi.",
+    ui() { return `<button type="button" id="iceBtn" class="primary" ${S.inIce ? 'disabled' : ''}>Muz vannasiga qo'yish</button>`; },
+    bind() { const b = $('iceBtn'); if (b) b.onclick = () => { S.inIce = true; S.cooling = true; b.disabled = true; say("Kolba muz vannasida. Harorat tushmoqda..."); cool(); }; }
+  },
+  { t: "Magnit aralashtirgich", narr: "Kolbaga magnit tayoqcha tushiring va aralashtirgichni yoqing. Tezlikni o'rtacha, 300 dan 700 aylanish oralig'ida o'rnating.",
+    why: "<b>Nega o'rtacha tezlik?</b> Sekin aralashtirishda tomchi bir joyda to'planib, mahalliy konsentratsiya oshadi. Juda tez aralashtirish esa sachratadi va havo pufakchalarini kiritadi.",
+    ui() { return `<button type="button" id="barBtn" ${S.stirBar ? 'disabled' : ''}>Magnit tayoqchani tushirish</button><div class="field"><label for="rpm">Tezlik:</label><input id="rpm" type="range" min="0" max="1200" step="50" value="${S.rpm}" ${S.stirBar ? '' : 'disabled'}><span id="rpmVal" style="font-family:var(--mono)">${S.rpm} rpm</span></div>`; },
+    bind() {
+      $('barBtn').onclick = () => { S.stirBar = true; render(); say("Tayoqcha kolba tubida. Endi tezlikni sozlang."); };
+      const r = $('rpm');
+      r.oninput = () => { S.rpm = +r.value; $('rpmVal').textContent = S.rpm + ' rpm'; scene(); };
+      r.onchange = () => {
+        if (S.rpm >= 300 && S.rpm <= 700) complete("Zo'r, aralashtirish tezligi to'g'ri.");
+        else if (S.rpm > 700) say("Juda tez! Eritma sachrab ketishi mumkin, tezlikni kamaytiring.", 'bad');
+        else say("Juda sekin. Tezlikni 300 dan oshiring.", 'bad');
+      };
+    }
+  },
+  { t: "AgNO₃ ni tomchilatish", narr: "Endi eng muhim bosqich. Byuretka jo'mragini ochib, 2 millilitr kumush nitratni sekundiga taxminan bitta tomchi tezlikda qo'shing. Har bosish 0.1 millilitr. Rang o'zgarishini kuzating.",
+    why: "<b>Nima bo'lyapti?</b> Ag⁺ + e⁻ → Ag⁰. Kumush atomlari klasterlarga yig'iladi (nukleatsiya), so'ng ~10 nm zarrachalarga o'sadi. Sariq rang sirt plazmon rezonansidan kelib chiqadi. Tez qo'shilsa zarrachalar yopishib qoladi.",
+    ui() { return `<button type="button" id="dropBtn" class="primary" ${S.vol >= 2 ? 'disabled' : ''}>Tomchi qo'shish (0.1 mL)</button><button type="button" id="autoBtn" ${S.vol >= 2 ? 'disabled' : ''}>${S.auto ? 'To\'xtatish' : 'Avtomatik: 1 tomchi/s'}</button>`; },
+    bind() {
+      $('dropBtn').onclick = () => addDrop(false);
+      $('autoBtn').onclick = () => {
+        if (S.auto) { clearInterval(S.auto); S.auto = null; render(); return; }
+        S.auto = setInterval(() => addDrop(true), 1000); render();
+      };
+    }
+  },
+  { t: "Aralashtirishni to'xtatish", narr: "Kumush nitrat to'liq qo'shildi. Aralashtirgichni darhol o'chiring! Uzoq aralashtirish zarrachalarni yopishtirib yuboradi.",
+    why: "<b>Nega?</b> Qo'shish tugagach uzoq aralashtirish zarrachalar to'qnashuvini oshiradi va agregatsiyaga olib keladi: eritma kulrang-binafsha tusga kiradi.",
+    ui() { return `<button type="button" id="stopBtn" class="primary" ${S.stirStopped ? 'disabled' : ''}>Aralashtirgichni o'chirish</button>`; },
+    enter() { if (!S.stirStopped && !S.overTimer) S.overTimer = setInterval(() => { S.overStir++; scene(); }, 1000); },
+    bind() { $('stopBtn').onclick = () => {
+      clearInterval(S.overTimer); S.overTimer = null; S.stirStopped = true; S.rpm = 0; render();
+      complete(S.overStir > 8 ? "To'xtatildi, lekin biroz kech: qisman agregatsiya kuzatiladi." : "To'g'ri vaqtda to'xtatildi. Tiniq sariq kolloid eritma olindi!");
+    }; }
+  },
+  { t: "Tahlil: spektr va Tindal effekti", narr: "Endi mahsulotni tekshiramiz. Avval spektrofotometrda yutilish spektrini oling, so'ng lazer nurini eritmadan o'tkazing.",
+    why: "<b>Kutilgan natija:</b> ~400 nm da tor cho'qqi — bu ~10–15 nm sferik kumush zarrachalarining belgisi. Lazer nuri eritmada ko'rinadi (Tindal effekti), chunki zarrachalar yorug'likni sochadi — bu haqiqiy eritma emas, kolloid ekanini isbotlaydi.",
+    ui() { return `<button type="button" id="specBtn" class="primary" ${S.spectrum ? 'disabled' : ''}>UV-Vis spektrini olish</button><button type="button" id="lasBtn" ${S.laser ? 'class="on"' : ''}>${S.laser ? 'Lazerni o\'chirish' : 'Lazerni yoqish'}</button>`; },
+    bind() {
+      $('specBtn').onclick = () => { S.spectrum = true; render(); const p = peak(); say(`Spektr olindi. Maksimum ${p} nanometrda.`, 'ok'); check7(); };
+      $('lasBtn').onclick = () => { const was = S.laser; S.laser = !S.laser; render(); if (!was) { say("Nur kolba ichida yorqin chiziq bo'lib ko'rinmoqda — bu Tindal effekti.", 'ok'); S.laserSeen = true; check7(); } };
+    }
+  },
+  { t: "Barqarorlik testi", narr: "Ikki probirkaga kolloid eritmadan quyamiz. A probirkaga natriy xlorid qo'shing. B probirkaga avval polivinilpirrolidon, so'ng natriy xlorid qo'shing. Farqni kuzating.",
+    why: "<b>Tushuntirish:</b> Zarrachalar sirtidagi manfiy zaryad (BH₄⁻) ularni bir-biridan itaradi. NaCl elektrolit sifatida bu zaryadni ekranlaydi — zarrachalar yopishadi va eritma kulranglashadi. PVP polimer qobiq hosil qilib, sterik himoya beradi.",
+    ui() { return `<button type="button" id="naclBtn" ${S.nacl ? 'disabled' : ''}>A: NaCl qo'shish</button><button type="button" id="pvpBtn" ${S.pvp ? 'disabled' : ''}>B: PVP + NaCl qo'shish</button>`; },
+    bind() {
+      $('naclBtn').onclick = () => { S.nacl = true; render(); say("A probirka: rang sariqdan kulrang-binafshaga o'tdi, so'ng xiralashdi. Agregatsiya!", 'bad'); if (S.pvp) complete("Ikki test ham bajarildi."); };
+      $('pvpBtn').onclick = () => { S.pvp = true; render(); say("B probirka: rang sariqligicha qoldi. PVP zarrachalarni himoya qildi.", 'ok'); if (S.nacl) complete("Ikki test ham bajarildi."); };
+    }
+  },
+  { t: "Yakuniy test", narr: "Tabriklayman, tajriba yakunlandi! Endi bilimingizni tekshiring: to'rtta savolga javob bering.",
+    why: "",
+    ui() { return `<div class="quiz">${QUIZ.map((q, i) => `<div class="q"><p>${i + 1}. ${q.q}</p><div class="opts">${q.o.map((o, j) => { const a = S.quiz[i]; const cls = a === undefined ? '' : (j === q.a ? 'right' : (a === j ? 'wrong' : '')); return `<button type="button" data-q="${i}" data-o="${j}" class="${cls}" ${a !== undefined ? 'disabled' : ''}>${o}</button>`; }).join('')}</div></div>`).join('')}</div>`; },
+    bind(c) { c.querySelectorAll('[data-q]').forEach(b => b.onclick = () => {
+      const i = +b.dataset.q, j = +b.dataset.o; S.quiz[i] = j; render();
+      say(j === QUIZ[i].a ? "To'g'ri!" : "Noto'g'ri. " + QUIZ[i].e, j === QUIZ[i].a ? 'ok' : 'bad');
+      if (Object.keys(S.quiz).length === QUIZ.length) { const n = QUIZ.filter((q, k) => S.quiz[k] === q.a).length; complete(`Natija: ${n} / ${QUIZ.length}. Laboratoriya ishi yakunlandi!`); }
+    }); }
+  }
+];
+const QUIZ = [
+  { q: "Kumush nanozarrachalar eritmasining sariq rangi nimaga bog'liq?", o: ["Sirt plazmon rezonansi", "AgNO₃ rangi", "NaBH₄ ning oksidlanishi"], a: 0, e: "Sariq rang ~400 nm dagi sirt plazmon rezonansi tufayli." },
+  { q: "Nega NaBH₄ eritmasi muzda sovutiladi?", o: ["Rangini o'zgartirish uchun", "Gidrolizni sekinlatish va o'sishni nazorat qilish", "AgNO₃ ni eritish uchun"], a: 1, e: "Sovuqda NaBH₄ sekin parchalanadi, zarrachalar bir xil o'sadi." },
+  { q: "NaCl qo'shilganda nima kuzatiladi?", o: ["Rang kuchliroq sariq bo'ladi", "Agregatsiya: kulrang tus", "Hech narsa"], a: 1, e: "Elektrolit sirt zaryadini ekranlaydi va zarrachalar yopishadi." },
+  { q: "Tindal effekti nimani isbotlaydi?", o: ["Eritma kolloid ekanini", "Eritma kislotali ekanini", "Reaksiya tugamaganini"], a: 0, e: "Nurning sochilishi kolloid zarrachalar borligini ko'rsatadi." }
+];
+
+/* ---------- actions ---------- */
+function complete(text) { S.done[S.step] = true; say(text, 'ok'); renderRail(); $('nextBtn').disabled = false; }
+function cool() {
+  const tick = setInterval(() => {
+    S.temp = Math.max(2, S.temp - 1.25); scene();
+    if (S.temp <= 2) { clearInterval(tick); S.cooling = false; if (S.step === 3) complete("Harorat 2 °C ga tushdi. Eritma tayyor."); else S.done[3] = true; }
+  }, 300);
+}
+function addDrop(auto) {
+  if (S.vol >= 2 || S.step !== 5) { if (S.auto) { clearInterval(S.auto); S.auto = null; } return; }
+  const now = performance.now();
+  if (!auto && S.lastDrop && now - S.lastDrop < 600) {
+    S.risk = Math.min(1, S.risk + .2);
+    $('msg').textContent = "Juda tez! Sekinroq, sekundiga bitta tomchi."; $('msg').className = 'msg bad';
+  } else S.risk = Math.max(0, S.risk - .05);
+  S.lastDrop = now;
+  S.vol = Math.round((S.vol + .1) * 10) / 10;
+  const d = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  d.setAttribute('cx', 300); d.setAttribute('cy', 122); d.setAttribute('r', 3.5); d.setAttribute('fill', '#cfe6f2'); d.setAttribute('class', 'drop');
+  $('drops').appendChild(d); setTimeout(() => d.remove(), 500);
+  scene();
+  if (S.vol === 0.5) say("Och sariq rang paydo bo'ldi — birinchi nanozarrachalar hosil bo'lmoqda.");
+  if (S.vol === 1.2) say("Rang kuchaymoqda. Shu tezlikni saqlang.");
+  if (S.vol >= 2) {
+    if (S.auto) { clearInterval(S.auto); S.auto = null; }
+    render();
+    complete(S.risk >= 1 ? "2 mL qo'shildi, lekin juda tez qo'shilgani uchun eritma qisman xiralashdi." : "2 mL qo'shildi. Tiniq, yorqin sariq rang hosil bo'ldi!");
+  }
+}
+function check7() { if (S.spectrum && S.laserSeen) complete("Tahlil yakunlandi: kolloid kumush tasdiqlandi."); }
+
+/* ---------- spectrum ---------- */
+function absorb(l, amp, center, w, tail) {
+  const g = amp * Math.exp(-((l - center) ** 2) / (2 * w * w));
+  const t = tail * Math.exp(-((l - 560) ** 2) / (2 * 90 * 90));
+  return g + t + 0.04 * amp * Math.exp(-(l - 300) / 40);
+}
+function peak() { const g = agg(); return Math.round(400 + g * 40); }
+function drawChart() {
+  const W = 640, H = 260, L = 48, R = 16, T = 12, B = 36;
+  const x = l => L + (l - 300) / 400 * (W - L - R), y = a => H - B - a / 1.2 * (H - T - B);
+  let s = '';
+  for (let a = 0; a <= 1.2001; a += .3) s += `<line x1="${L}" x2="${W - R}" y1="${y(a)}" y2="${y(a)}" stroke="var(--line)"/><text x="${L - 8}" y="${y(a) + 4}" text-anchor="end" font-size="11" font-family="IBM Plex Mono, monospace" fill="var(--muted)">${a.toFixed(1)}</text>`;
+  for (let l = 300; l <= 700; l += 100) s += `<text x="${x(l)}" y="${H - B + 18}" text-anchor="middle" font-size="11" font-family="IBM Plex Mono, monospace" fill="var(--muted)">${l}</text>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle" font-size="11" fill="var(--muted)">To'lqin uzunligi, nm</text>`;
+  s += `<text x="12" y="${T + 8}" font-size="11" fill="var(--muted)">A</text>`;
+  const curve = (f, col, dash) => { let d = ''; for (let l = 300; l <= 700; l += 4) d += (l === 300 ? 'M' : 'L') + x(l).toFixed(1) + ' ' + y(Math.min(1.2, f(l))).toFixed(1); return `<path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" ${dash ? 'stroke-dasharray="6 4"' : ''}/>`; };
+  const g = agg(), leg = [];
+  s += curve(l => absorb(l, 1.0 - g * .45, 400 + g * 40, 28 + g * 30, g * .35), 'var(--sol)');
+  leg.push(['var(--sol)', `Asosiy kolba (λmax ≈ ${peak()} nm)`]);
+  if (S.nacl) { s += curve(l => absorb(l, .35, 430, 60, .32), 'var(--muted)', true); leg.push(['var(--muted)', 'A: +NaCl (agregatsiya)']); }
+  if (S.pvp) { s += curve(l => absorb(l, .95, 402, 30, .02), 'var(--accent)', true); leg.push(['var(--accent)', 'B: PVP + NaCl']); }
+  const p = peak(); s += `<line x1="${x(p)}" x2="${x(p)}" y1="${T}" y2="${H - B}" stroke="var(--sol)" stroke-dasharray="2 3"/>`;
+  $('chart').innerHTML = s;
+  $('legend').innerHTML = leg.map(([c, t]) => `<span style="--c:${c}">${t}</span>`).join('');
+}
+
+/* ---------- scene ---------- */
+const vis = (id, on) => $(id).setAttribute('visibility', on ? 'visible' : 'hidden');
+function scene() {
+  vis('flask', S.naDissolved || S.step >= 1 && S.done[1]);
+  vis('ice', S.inIce);
+  vis('thermo', (S.inIce || S.step === 3) && S.step <= 6);
+  vis('burette', S.agReady && S.step >= 2 && S.step <= 6);
+  vis('stirbar', S.stirBar);
+  vis('laser', S.laser);
+  vis('vials', S.step >= 8);
+  $('plate').setAttribute('opacity', S.step >= 4 ? 1 : .35);
+
+  const t = S.vol / 2, g = agg();
+  const col = solColor(t, g);
+  const liq = $('liquid');
+  liq.setAttribute('fill', col);
+  liq.setAttribute('fill-opacity', (.45 + t * .45).toFixed(2));
+  const lvl = 222 - S.vol * 3; liq.setAttribute('y', lvl); liq.setAttribute('height', 300 - lvl);
+  $('buretteLiq').setAttribute('y', 20 + S.vol / 2 * 60); $('buretteLiq').setAttribute('height', 80 - S.vol / 2 * 60);
+  $('flaskLbl').textContent = S.vol > 0 ? `Ag NZ kolloid, ${(30 + S.vol).toFixed(1)} mL` : 'NaBH₄ 2 mM, 30 mL';
+
+  const sb = $('stirbar'); sb.style.setProperty('--spd', S.rpm > 0 ? (60 / S.rpm * 2).toFixed(2) + 's' : '0s');
+  $('rpmTxt').textContent = S.rpm + ' rpm';
+  $('mercury').setAttribute('y', 258 - (S.temp + 5) * 4); $('mercury').setAttribute('height', (S.temp + 5) * 4);
+  $('beamIn').setAttribute('stroke-opacity', S.vol > 0 ? 1 : .15);
+
+  $('vialALiq').setAttribute('fill', S.nacl ? solColor(1, 1) : col);
+  $('vialBLiq').setAttribute('fill', col);
+
+  const gear = Object.entries(S.gear).filter(([, v]) => v).map(([k], i) => `<text x="16" y="${22 + i * 16}" fill="var(--ok)">✓ ${{kozoynak:"ko'zoynak",qolqop:"qo'lqop",xalat:"xalat"}[k]}</text>`).join('');
+  $('gear').innerHTML = gear;
+
+  $('gTemp').textContent = S.temp.toFixed(1) + ' °C';
+  $('gVol').textContent = S.vol.toFixed(2) + ' mL';
+  $('gVolBar').style.width = (S.vol / 2 * 100) + '%';
+  $('gRpm').textContent = S.rpm + ' rpm';
+  const risk = Math.max(S.risk, g);
+  $('gRisk').textContent = risk < .34 ? 'past' : risk < .7 ? "o'rta" : 'yuqori';
+  $('gRiskBar').style.width = (risk * 100) + '%';
+  $('gRiskBar').style.background = risk < .34 ? 'var(--ok)' : 'var(--warn)';
+  $('gColor').style.background = col;
+
+  if (S.spectrum) drawChart();
+}
+
+/* ---------- render ---------- */
+function renderRail() {
+  $('rail').innerHTML = STEPS.map((s, i) => {
+    const reach = i === 0 || S.done[i - 1];
+    return `<button type="button" data-s="${i}" class="${i === S.step ? 'cur' : ''} ${S.done[i] ? 'done' : ''}" ${reach ? '' : 'disabled'} ${i === S.step ? 'aria-current="step"' : ''}><span class="n">${S.done[i] ? '✓' : i + 1}</span><span>${s.t}</span></button>`;
+  }).join('');
+  $('rail').querySelectorAll('[data-s]').forEach(b => b.onclick = () => go(+b.dataset.s));
+}
+function render() {
+  const st = STEPS[S.step];
+  $('stepNo').textContent = `Bosqich ${S.step + 1} / ${STEPS.length}`;
+  $('stepTitle').textContent = st.t;
+  $('narr').textContent = st.narr;
+  $('why').innerHTML = st.why; $('why').hidden = !st.why;
+  const c = $('controls'); c.innerHTML = st.ui(); st.bind(c);
+  $('prevBtn').disabled = S.step === 0;
+  $('nextBtn').disabled = !S.done[S.step] || S.step === STEPS.length - 1;
+  $('chartBox').hidden = !S.spectrum;
+  renderRail(); scene();
+}
+function go(i) {
+  if (i < 0 || i >= STEPS.length) return;
+  S.step = i; $('msg').textContent = ''; $('msg').className = 'msg';
+  if (STEPS[i].enter) STEPS[i].enter();
+  render(); speak(STEPS[i].narr);
+}
+$('prevBtn').onclick = () => go(S.step - 1);
+$('nextBtn').onclick = () => go(S.step + 1);
+render();
+})();
+</script>
+
+</body>
+</html>
